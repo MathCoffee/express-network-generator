@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express Network Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338CA;
+            --bg-color: #0f172a;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-weight: 800;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #e2e8f0;
+        }
+
+        input[type="file"], select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        input[type="file"]::file-selector-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin-right: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            background: var(--primary-hover);
+        }
+
+        select {
+            appearance: none;
+            cursor: pointer;
+        }
+        
+        /* Fix for select options text color in standard browsers */
+        select option {
+            background: var(--bg-color);
+            color: white;
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.6);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #sheetSelection {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .result-container {
+            margin-top: 2rem;
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s;
+        }
+
+        .result-container img {
+            max-width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .download-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #818cf8;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .download-link:hover {
+            color: #c084fc;
+        }
+
+        .loader {
+            display: none;
+            margin: 2rem auto;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #818cf8;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Express Network Generator</h1>
+    <p class="subtitle">Visualiza la interrelación de nodos de manera interactiva</p>
+
+    <div class="container">
+        <form id="uploadForm">
+            <div class="form-group">
+                <label for="fileInput">1. Sube tu archivo Excel (.xlsx)</label>
+                <input type="file" id="fileInput" accept=".xlsx, .xls" required>
+            </div>
+        </form>
+
+        <div id="sheetSelection">
+            <div class="form-group">
+                <label for="sheetSelect">2. Selecciona la pestaña de datos</label>
+                <select id="sheetSelect"></select>
+            </div>
+            <button id="generateBtn">Generar Gráfica</button>
+        </div>
+
+        <div class="loader" id="loader"></div>
+
+        <div class="result-container" id="resultContainer">
+            <h3>¡Gráfica Generada!</h3>
+            <img id="resultImage" src="" alt="Network Graph">
+            <br>
+            <a id="downloadLink" href="" download class="download-link">⬇ Descargar Imagen</a>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const sheetSelection = document.getElementById('sheetSelection');
+        const sheetSelect = document.getElementById('sheetSelect');
+        const generateBtn = document.getElementById('generateBtn');
+        const loader = document.getElementById('loader');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultImage = document.getElementById('resultImage');
+        const downloadLink = document.getElementById('downloadLink');
+
+        let currentFilename = '';
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            resultContainer.style.display = 'none';
+            sheetSelection.style.display = 'none';
+            
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentFilename = data.filename;
+                    
+                    // Populate sheets
+                    sheetSelect.innerHTML = '';
+                    data.sheets.forEach(sheet => {
+                        const option = document.createElement('option');
+                        option.value = sheet;
+                        option.textContent = sheet;
+                        sheetSelect.appendChild(option);
+                    });
+                    
+                    // Select 'Datos' if exists
+                    if (data.sheets.includes('Datos')) {
+                        sheetSelect.value = 'Datos';
+                    }
+                    
+                    sheetSelection.style.display = 'block';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error al subir el archivo.');
+                console.error(error);
+            }
+        });
+
+        generateBtn.addEventListener('click', async () => {
+            const sheet_name = sheetSelect.value;
+            if (!currentFilename || !sheet_name) return;
+
+            generateBtn.disabled = true;
+            loader.style.display = 'block';
+            resultContainer.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filename: currentFilename,
+                        sheet_name: sheet_name
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Update image with cache buster
+                    resultImage.src = data.image_url + "?t=" + new Date().getTime();
+                    downloadLink.href = data.image_url;
+                    downloadLink.download = data.image_name;
+                    resultContainer.style.display = 'block';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error al generar la gráfica.');
+                console.error(error);
+            } finally {
+                generateBtn.disabled = false;
+                loader.style.display = 'none';
+            }
+        });
+    </script>
+    
+    <footer style="margin-top: 3rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+        &copy; 2026 Tlacuache Codex Lab. Todos los derechos reservados.
+    </footer>
+</body>
+</html>

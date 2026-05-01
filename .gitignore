@@ -1,0 +1,23 @@
+.tmp_venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Archivos de la aplicación
+static/uploads/*
+!static/uploads/.gitkeep
+static/outputs/*
+!static/outputs/.gitkeep
+*.xlsx
+*.xls
+*.png
+*.jpg
+*.jpeg
+*.DS_Store
